@@ -2,8 +2,9 @@
 # https://www.askpython.com/python/examples/rsa-algorithm-in-python
 # https://youtu.be/wcbH4t5SJpg
 # https://youtu.be/qdylJqXCDGs, http://stackoverflow.com/questions/6325576/how-many-iterations-of-rabin-miller-should-i-use-for-cryptographic-safe-primes
-
 import random
+
+size=1024
 
 def gcd(a, b):
     while a > 0:
@@ -11,16 +12,17 @@ def gcd(a, b):
         (a, b) = (b, a)
     return b
 
-
+"""
 def modInverse(A, M):
     if gcd(A, M) > 1:
         # modulo inverse does not exist
         return -1
     for X in range(1, M):
+        print("e")
         if ((A % M) * (X % M)) % M == 1:
             return X
     return -1
-
+"""
 def miller_rabin(n):
     if n == 2:
         return True
@@ -44,9 +46,25 @@ def miller_rabin(n):
         else:
             return False
     return True
-def generate_keys():
 
-p, q = 13, 11  # p=prime number, q=prime number INPUT HERE
+def generate_keys():
+    p, q = 0, 0
+
+    # Loop to generate p
+    while not p:
+        rng = random.getrandbits(size)
+        if miller_rabin(rng):
+            p = rng
+
+    # Loop to generate q
+    while not q:
+        rng = random.getrandbits(size)
+        if miller_rabin(rng):
+            q = rng
+
+    return p, q
+
+p,q=generate_keys()            
 
 n, r = p * q, (p - 1) * (q - 1)
 
@@ -58,11 +76,11 @@ while e < r:
     else:
         e += 1
 
-d = modInverse(e, r)
+d = y = pow(e, -1, r)
 
 private_key = (d, n)
 public_key = (e, n)
-
+print(private_key)
 
 def encrypt(message_input, public_key):
     encrypted_list = []
@@ -79,3 +97,6 @@ def decrypt(cipher_input, private_key):
         dec_str = dec_str + chr(char)
     return dec_str
 
+encryptedEmoji=encrypt('🤩', public_key)
+print(encryptedEmoji)
+"""decrypt(encryptedEmoji,private_key)"""
