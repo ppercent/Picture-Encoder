@@ -63,7 +63,7 @@ class ImageManager:
         current_pixel[self.GLOBAL_INDEX_RGB] = current_channel
         self.image.putpixel(self.GLOBAL_INDEX_IMAGE, tuple(current_pixel))
 
-        # update GLOBAL_INDEX_RGB & GLOBAL_INDEX_IMAGE
+        # update globals
         self.update_globals()
 
     def encode_bits(self, bits):
