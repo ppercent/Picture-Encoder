@@ -10,28 +10,47 @@ import time
 
 debut=time.time()
 
-size=512
-message=r"""Sure! Let's dive deeper into the mathematics behind each function in the program. This will help clarify how the operations work, especially in the context of cryptography, particularly RSA-like encryption. ◌󠇯"""
+size=1024
+message=r"""Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. N"""
 
-def gcd(a, b):
-    while a > 0:
-        b = b % a
-        (a, b) = (b, a)
-    return b
+def mod_exp(base, exponent, modulus):
+    if modulus == 1:
+        return 0  # Anything mod 1 is always 0
 
-def mod_exp(base, power, mod):
+    base = base % modulus  # Ensure base is within the valid range
+
+    if exponent < 0:
+        base = modular_inverse(base, modulus)  # Compute modular inverse
+        exponent = -exponent  # Convert exponent to positive
+
     result = 1
-    while power > 0:
-        # If power is odd
-        if power % 2 == 1:
-            result = (result * base) % mod
-
-        # Divide the power by 2
-        power = power // 2
-        # Multiply base to itself
-        base = (base * base) % mod
+    while exponent > 0:
+        if exponent % 2 == 1:  # If exponent is odd
+            result = (result * base) % modulus
+        exponent //= 2  # Divide exponent by 2
+        base = (base * base) % modulus  # Square the base
 
     return result
+
+def modular_inverse(number, modulus):
+    """Computes the modular inverse of 'number' under modulo 'modulus' using the Extended Euclidean Algorithm."""
+    gcd, inverse, _ = extended_gcd(number, modulus)
+    if gcd != 1:
+        raise ValueError("Modular inverse does not exist")  # Inverse exists only if gcd(number, modulus) == 1
+    return inverse % modulus
+
+def extended_gcd(a, b):
+    """
+    Extended Euclidean Algorithm:
+    Returns gcd(a, b) and the coefficients x, y such that ax + by = gcd(a, b).
+    """
+    if a == 0:
+        return b, 0, 1
+    gcd, x1, y1 = extended_gcd(b % a, a)
+    x = y1 - (b // a) * x1
+    y = x1
+    return gcd, x, y
+
 
 def miller_rabin(n):
     if n == 2:
@@ -73,23 +92,21 @@ def generate_keys():
             q = rng
 
     return p, q
-
-p,q=generate_keys()            
-
-n, r = p * q, (p - 1) * (q - 1)
-
-e, d = 2, 2  # leurs minimum est de 2
-
-while e < r:
-    if gcd(e, r) == 1:
-        break
-    else:
-        e += 1
-
-d = y = pow(e, -1, r)
-
-private_key = (d, n)
-public_key = (e, n)
+  
+  
+# Implementation of the Chinese Remainder Theorem 
+def chinese_remainder_theorem(dq, dp, p, q, c): 
+      
+    # Message part 1 
+    m1 = mod_exp(c, dp, p) 
+      
+    # Message part 2 
+    m2 = mod_exp(c, dq, q) 
+      
+    qinv = modular_inverse(q, p) 
+    h = (qinv * (m1 - m2)) % p 
+    m = m2 + h * q 
+    return m 
 
 
 def encrypt(message_input, public_key):
@@ -103,16 +120,31 @@ def encrypt(message_input, public_key):
 
 def decrypt(cipher_input, private_key):
     dec_str = ""
+    dp = mod_exp(private_key[0], 1, private_key[1] - 1) 
+    dq = mod_exp(private_key[0], 1, private_key[2] - 1) 
     for num in cipher_input:
-        char = mod_exp(num,private_key[0],private_key[1])
+        char = chinese_remainder_theorem(dq, dp, private_key[1], private_key[2], num)
         dec_str = dec_str + chr(char)
     return dec_str
 
+p,q=generate_keys()            
+n, r = p * q, (p - 1) * (q - 1)
 
+e, d = 2, 2  # leurs minimum est de 2
+
+while e < r:
+    if extended_gcd(e, r)[0] == 1:
+        break
+    else:
+        e += 1
+
+d = mod_exp(e, -1, r)
+
+print(time.time()-debut)
+private_key = (d, p, q)
+public_key = (e, n)
 encryptedEmoji=encrypt(message, public_key)
-print(encryptedEmoji)
-print(decrypt(encryptedEmoji,private_key))
-
-fin = time.time()
-print(fin-debut)
-
+#print(encryptedEmoji)
+decryptedEmoji=decrypt(encryptedEmoji,private_key)
+#print(decrypt(encryptedEmoji,private_key))
+print(time.time()-debut)
