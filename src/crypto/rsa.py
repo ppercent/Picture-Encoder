@@ -2,13 +2,15 @@
 # https://www.askpython.com/python/examples/rsa-algorithm-in-python
 # https://youtu.be/wcbH4t5SJpg
 # https://youtu.be/qdylJqXCDGs, http://stackoverflow.com/questions/6325576/how-many-iterations-of-rabin-miller-should-i-use-for-cryptographic-safe-primes
-
-# character size indication
-# chinese remainder theorem
+# https://youtu.be/NcPdiPrY_g8
+# https://www.geeksforgeeks.org/weak-rsa-decryption-chinese-remainder-theorem/
 
 import random
+import time
 
-size=1024
+debut=time.time()
+
+size=512
 message=r"""Sure! Let's dive deeper into the mathematics behind each function in the program. This will help clarify how the operations work, especially in the context of cryptography, particularly RSA-like encryption. ◌󠇯"""
 
 def gcd(a, b):
@@ -110,3 +112,7 @@ def decrypt(cipher_input, private_key):
 encryptedEmoji=encrypt(message, public_key)
 print(encryptedEmoji)
 print(decrypt(encryptedEmoji,private_key))
+
+fin = time.time()
+print(fin-debut)
+
