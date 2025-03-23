@@ -68,7 +68,7 @@ class GUI(tk.Tk):
         self.image_mainframe_bg = tk.PhotoImage(file=base_dir + '\\assets\\Frame 1\\background.png')
         self.image_encode_button = tk.PhotoImage(file=base_dir + '\\assets\\Frame 1\\encode_button.png')
         self.image_decode_button = tk.PhotoImage(file=base_dir + '\\assets\\Frame 1\\decode_button.png')
-        # self.image_placeholder = tk.PhotoImage(file=base_dir + '\\assets\\image_placeholder.png')
+        self.image_placeholder = tk.PhotoImage(file=base_dir + '\\assets\\image_placeholder.png')
         # self.iconbitmap(base_dir + '\\assets\\icon.ico')
         # self.enter_icon = tk.PhotoImage(file=base_dir + '\\assets\\enter.png')
         # self.icon = tk.PhotoImage(file=base_dir + '\\assets\\icon.png')
@@ -153,9 +153,81 @@ class GUI(tk.Tk):
         self.decode_label.bind("<Button-1>", lambda event: self.update_switch_button_state('decode'))
         
         self.update_switch_button_state('encode')
+        
+        
+        # encode mainframe ----------------------
+        
+        # setup encode mainframes
+        self.encode_input_mainframe = CTkFrame(self, width=500, height=455, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF')       # first frame in the encode section
+        self.encode_options_mainframe = CTkFrame(self, width=500, height=455, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF')       # second frame in the encode section
+        self.a = CTkFrame(self, width=510, height=455, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF')     # third frame in the encode section
+        
+        self.encode_input_mainframe.pack_propagate(False)
+        self.encode_options_mainframe.pack_propagate(False)
+        self.a.pack_propagate(False)
 
+        # create the widgets of the first mainframe
+        encode_input_textbox = CTkTextbox(
+            master=self.encode_input_mainframe,
+            height=150,
+            width=450,
+            wrap=tk.WORD,
+            font=('SF Pro', 15),
+            border_spacing=0,
+            corner_radius=10,
+            fg_color='#f1efef',
+            text_color='#000000',
+            border_color='#D9D9D9',
+            border_width=1)
+            
+        encode_input_image_frame = CTkFrame(
+            master=self.encode_input_mainframe,
+            width=450,
+            height=200,
+            fg_color='#f1efef',
+            corner_radius=15,
+            bg_color='#D9D9D9')
+            
+        encode_input_image_frame.pack_propagate(False)
+            
+        encode_input_image_placeholder = tk.Label(encode_input_image_frame, image=self.image_placeholder)
+        encode_input_image_label = tk.Label(encode_input_image_frame, font=('SF Pro', 10, "bold"), text="Collez une image pour un encodage indétectable\nou laissez vide pour générer une image (plus d'espace pour encoder)")
+        # TODO make encode_input_image_label text change color when you hover the frame/label, so the user knows you can click it (and it would open file explorer) AND implement image paste from clipboard
+        
+        encode_input_encode_button = CTkButton(self.encode_input_mainframe, fg_color='#1a93cf', hover_color='#33a7de', height=50, text='Commencer à encoder', font=('Google Sans Text', 25, 'bold'), corner_radius=60)
+        
+        # pack widgets on the first frame of the encode section
+        encode_input_textbox.pack(pady=25)
+        encode_input_textbox.insert("0.0", "Entrez le texte à encoder...")
+        
+        encode_input_image_placeholder.place(x=190, y=40)
+        encode_input_image_label.place(x=2, y=110)
+        encode_input_image_frame.pack()
+        
+        encode_input_encode_button.pack(side='bottom', pady=8)
+        
+        # pack the first mainframe
+        self.encode_input_mainframe.place(x=20, y=125)
+        
+        # create the widgets of the first mainframe
+        
+        
+        
+        
+        # pack the second mainframe
+        self.encode_options_mainframe.place(x=560, y=125)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # decode mainframe
         # draw debug/log window        
-        debug_frame_beautifier = CTkFrame(self, width=1040, height=180, fg_color='#22272D', corner_radius=15, bg_color='#FFFFFF') # debug_frame * 1.06
+        debug_frame_beautifier = CTkFrame(self, width=1040, height=180, fg_color='#22272D', corner_radius=15, bg_color='#FFFFFF')
         debug_frame = CTkFrame(debug_frame_beautifier, width=1030, height=162, fg_color='#22272D', corner_radius=15, bg_color='#22272D')
         
         self.debug = scrolledtext.ScrolledText(
