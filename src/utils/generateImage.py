@@ -6,23 +6,28 @@ import math
 
 class ImageGenerator:
     def __init__(self):
+        self.set_globals(20)
+        self.WATERMARK_KEY_DEFAULT = "1"
+        self.WATERMARK_KEY_ENCODE = "2"
+
+    def set_globals(self, size):
+        self.image = Image.new(mode="RGB", size=(size,size))
         self.GLOBAL_INDEX_IMAGE = (0, 0)   # (width, height)
         self.GLOBAL_INDEX_RGB = 0
-        self.image = Image.new(mode="RGB", size=(10,10))
         self.WIDTH = self.image.size[0]
         self.HEIGHT = self.image.size[1]
         self.PIXEL_COUNT = self.WIDTH * self.HEIGHT
-        self.WATERMARK_KEY_DEFAULT = "1"
-        self.WATERMARK_KEY_ENCODE = "2"
-    def update_globals(self):
-        if self.GLOBAL_INDEX_RGB == 2:
-            new_width = (self.GLOBAL_INDEX_IMAGE[0] + 1) % self.WIDTH
-            new_heigth = self.GLOBAL_INDEX_IMAGE[1]
-            if new_width == 0:
-                new_heigth += 1
-            # update global variable
-            self.GLOBAL_INDEX_IMAGE = (new_width, new_heigth)
-        self.GLOBAL_INDEX_RGB = (self.GLOBAL_INDEX_RGB + 1) % 3
+
+    def update_globals(self,iterations):
+        for i in range(iterations):
+            if self.GLOBAL_INDEX_RGB == 2:
+                new_width = (self.GLOBAL_INDEX_IMAGE[0] + 1) % self.WIDTH
+                new_heigth = self.GLOBAL_INDEX_IMAGE[1]
+                if new_width == 0:
+                    new_heigth += 1
+                # update global variable
+                self.GLOBAL_INDEX_IMAGE = (new_width, new_heigth)
+            self.GLOBAL_INDEX_RGB = (self.GLOBAL_INDEX_RGB + 1) % 3
     
     def get_ppercent_used(self):
         return round(((self.GLOBAL_INDEX_IMAGE[1] - 1) / self.HEIGHT) + (self.GLOBAL_INDEX_IMAGE[0] / (self.PIXEL_COUNT)), 2)
@@ -69,7 +74,7 @@ class ImageGenerator:
                 num=next_2_digits
                 text_index += 2
             
-            self.update_globals()
+            self.update_globals(1)
             current_pixel[self.GLOBAL_INDEX_RGB]=num
             
             if current_pixel[2]!=0:
@@ -96,53 +101,39 @@ class ImageGenerator:
             pass
     
     def create_image(self,pixels):
+        print(len(pixels))
         size=math.ceil(math.sqrt(len(pixels)))
+        self.set_globals(size)
         self.image = Image.new(mode="RGB", size=(size,size))
         for pixel in pixels:
             self.image.putpixel(self.GLOBAL_INDEX_IMAGE, tuple(pixel))
-            self.update_globals()
-        
+            self.update_globals(3)
     
     def generate_image(self,text,type):
         
-        self.set_size(text)
-        
         # encode the watermark
-        watermark_pixel_count=self.encode_watermark(text, type)
+        watermark_pixel=self.encode_watermark(text, type)
         
         # encode the text and save the pixel count
-        text_pixel_count=self.encode_text(text,False)
+        text_pixel=self.encode_text(text,False)
         
-        pixels=watermark_pixel_count+text_pixel_count
-        
+        pixels=watermark_pixel+text_pixel
+
         self.create_image(pixels)
-        
-        print(text_pixel_count+watermark_pixel_count-2) #PROBLEME DE 0
-        
-        
-
-    '''
-    # WORK IN PROGRESS           
-
-    def create_image(self,s):
-        while s%3!=0:
-            s+=1
-        size=math.ceil(math.sqrt(s/3))
-        self.image = Image.new(mode="RGB", size=(size,size))
-        self.WIDTH = self.image.size[0]
-        self.HEIGHT = self.image.size[1]
-        self.PIXEL_COUNT = self.WIDTH * self.HEIGHT
-    '''
-
+   
     # -----------------------------------------------------DECODING------------------------------------------------------------------
 
     def get_image_text(self):
         dec_chars=''
         for i in range(self.PIXEL_COUNT*3):
             current_pixel = list(self.image.getpixel(self.GLOBAL_INDEX_IMAGE))
+            print(current_pixel)
             current_channel = current_pixel[self.GLOBAL_INDEX_RGB]
-            dec_chars+=str(current_channel)
-            self.update_globals()
+
+            # PROBLEME DE 0
+            if current_channel!=0:
+                dec_chars+=str(current_channel)
+            self.update_globals(1)
             
             
         return dec_chars
@@ -150,7 +141,6 @@ class ImageGenerator:
         
     def read_character(self, char_decs, decrementNum):
         listed_dec_char=list(char_decs)
-        decrementNum=int(decrementNum)
         if decrementNum == 9:
             decrementNum = 0
         
@@ -165,21 +155,24 @@ class ImageGenerator:
 
     def decode(self):
         encoded_bits=self.get_image_text()
+        print(encoded_bits)
+
+        watermark_size=int(encoded_bits[0])
+        watermark_zeroes=int(encoded_bits[1])
+
+        watermark=self.read_character(encoded_bits[2:2+watermark_size],watermark_zeroes)
         
-        
-        watermark=self.read_character(encoded_bits[3:3+int(encoded_bits[1])],encoded_bits[2])
         if watermark[0] == self.WATERMARK_KEY_DEFAULT:
             type='DEFAULT'
         elif watermark[0] == self.WATERMARK_KEY_ENCODE:
             type='ENCODE'
-            
-            
+        
         char_count=int(watermark[1:])
-
+        print(char_count) 
         image_text = ''
-        current_char_count=4+int(encoded_bits[1])
+        current_char_count=2+watermark_size
+        
         while char_count:
-            
             
             char_size=int(encoded_bits[current_char_count])
             char_zeroes=int(encoded_bits[current_char_count+1])
@@ -187,8 +180,8 @@ class ImageGenerator:
             
             current_character=self.read_character(char_string,char_zeroes)
             image_text+=chr(int(current_character))
-            
-            current_char_count+=len(char_string)+2
+            print(current_character)
+            current_char_count+=2+char_size
             char_count-=1
         #print(encoded_bits)
         return image_text
@@ -196,11 +189,10 @@ class ImageGenerator:
 
 if __name__ == '__main__':
     IM = ImageGenerator()
-    text=r'''zinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinczinc'''
+    text=r'''A'''
     IM.generate_image(text,'DEFAULT')
     IM.image.show()
     IM.GLOBAL_INDEX_IMAGE = (0, 0)   # (width, height)
     IM.GLOBAL_INDEX_RGB = 0
     
-    IM.decode()
-    #print('decoded: '+IM.decode())
+    print('decoded: '+IM.decode())
