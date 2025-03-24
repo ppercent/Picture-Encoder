@@ -7,11 +7,13 @@
 
 import random
 import time
+import base64
+
 
 debut=time.time()
 
-size=1024
-message=r"""Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. N"""
+size=128
+message=r"""Lorem """
 
 def mod_exp(base, exponent, modulus):
     if modulus == 1:
@@ -90,10 +92,36 @@ def generate_keys():
         rng = random.getrandbits(size)
         if miller_rabin(rng):
             q = rng
+    n, r = p * q, (p - 1) * (q - 1)
 
-    return p, q
-  
-  
+    e, d = 2, 2  # leurs minimum est de 2
+
+    while e < r:
+        if extended_gcd(e, r)[0] == 1:
+            break
+        else:
+            e += 1
+
+    d = mod_exp(e, -1, r)
+
+    public_key_string = ','.join((str(e), str(n)))
+    private_key_string = ','.join((str(d), str(p), str(q)))
+
+    return encode_base_64(public_key_string), encode_base_64(private_key_string)
+
+def encode_base_64(key):
+
+    key_bytes = key.encode("ascii")
+
+    base64_bytes = base64.b64encode(key_bytes)
+    base64_key = base64_bytes.decode("ascii")
+    return base64_key
+
+def decode_base_64(base64_key):
+    base64_bytes = base64_key.encode("ascii")
+    key_bytes = base64.b64decode(base64_bytes)
+    key = key_bytes.decode("ascii")
+    return tuple([int(x) for x in key.split(",")])
 # Implementation of the Chinese Remainder Theorem 
 def chinese_remainder_theorem(dq, dp, p, q, c): 
       
@@ -127,22 +155,10 @@ def decrypt(cipher_input, private_key):
         dec_str = dec_str + chr(char)
     return dec_str
 
-p,q=generate_keys()            
-n, r = p * q, (p - 1) * (q - 1)
+public_key,private_key=generate_keys()            
+print('public key: ', public_key,'private key: ', private_key)
+public_key,private_key=decode_base_64(public_key),decode_base_64(private_key) 
 
-e, d = 2, 2  # leurs minimum est de 2
-
-while e < r:
-    if extended_gcd(e, r)[0] == 1:
-        break
-    else:
-        e += 1
-
-d = mod_exp(e, -1, r)
-
-print(time.time()-debut)
-private_key = (d, p, q)
-public_key = (e, n)
 encryptedEmoji=encrypt(message, public_key)
 #print(encryptedEmoji)
 decryptedEmoji=decrypt(encryptedEmoji,private_key)
