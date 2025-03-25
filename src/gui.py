@@ -272,6 +272,56 @@ class GUI(tk.Tk):
     def on_focus_out_callback(self, event, CTkEntry):
         CTkEntry.configure(border_color='#c7c7c7')
 
+    def init_decode_options_and_output_rsa(self):
+        # mainframes
+        self.decode_options_rsa_mainframe = CTkFrame(self, width=500, height=105, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF')
+        self.decode_output_rsa_mainframe = CTkFrame(self, width=500, height=325, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF')
+
+        self.decode_options_rsa_mainframe.pack_propagate(False)
+        self.decode_output_rsa_mainframe.pack_propagate(False)
+
+        # widgets
+        decode_options_rsa_label = ttk.Label(self.decode_options_rsa_mainframe, text='Decryptage RSA', font=('Consolas', 17, 'bold'), foreground='#000000', background='#D9D9D9')
+        decode_options_key_label = ttk.Label(self.decode_options_rsa_mainframe, text='Clé privée', font=('SF Pro', 14), foreground='#000000', background='#D9D9D9')
+        decode_options_output_name_field = CTkEntry( # TODO disable depending on switch
+            master=self.decode_options_rsa_mainframe,
+            height=25,
+            width=350,
+            border_width=1,
+            border_color='#c7c7c7',
+            bg_color='#D9D9D9',
+            placeholder_text='Njl2NDgzODlwNjUzMTc=...',
+            fg_color='#FFFFFF',
+            text_color='#2C3E50',
+            font=("Segoe UI", 13),
+            corner_radius=5)
+        decode_options_output_name_field.bind("<FocusIn>", lambda e: self.on_focus_in_callback(e, decode_options_output_name_field))
+        decode_options_output_name_field.bind("<FocusOut>", lambda e: self.on_focus_out_callback(e, decode_options_output_name_field))
+        
+        decode_ouput_label = ttk.Label(self.decode_output_rsa_mainframe, text='Texte décodé', font=('Consolas', 20, 'bold'), foreground='#000000', background='#D9D9D9')
+        decode_output_textbox = CTkTextbox( #500x325
+            master=self.decode_output_rsa_mainframe,
+            height=256,
+            width=450,
+            wrap=tk.WORD,
+            font=('SF Pro', 15),
+            border_spacing=0,
+            corner_radius=10,
+            fg_color='#f1efef',
+            text_color='#000000',
+            border_color='#D9D9D9',
+            border_width=1)
+        
+        # place widgets
+        decode_options_rsa_label.pack()
+        decode_options_key_label.place(x=20, y=40)
+        decode_options_output_name_field.place(x=20, y=65)
+
+        decode_ouput_label.pack(pady=4)
+        decode_output_textbox.pack()
+        decode_output_textbox.insert("0.0", "Nothing here...")
+
+
     def draw_gui(self):
         # apply styling
         ttk_styling = ttk.Style()
@@ -309,10 +359,7 @@ class GUI(tk.Tk):
         # decode mainframe ----------------------
         # setup decode mainframes || ONLY PACK/UNPACK MAINFRAMES
         self.decode_input_mainframe = CTkFrame(self, width=500, height=455, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF') 
-        self.decode_options_mainframe = CTkFrame(self, width=500, height=160, fg_color='#D9D9D9', corner_radius=15, bg_color='#FFFFFF')
-
         self.decode_input_mainframe.pack_propagate(False)
-        self.decode_options_mainframe.pack_propagate(False)
 
         # create the widgets of the first mainframe
         decode_input_image_frame = CTkFrame(
@@ -338,14 +385,15 @@ class GUI(tk.Tk):
         decode_input_decode_button.pack(side='bottom', pady=8)
 
         # pack frames TODO use different function for that
+        self.init_decode_options_and_output_rsa()
         self.decode_input_mainframe.place(x=20, y=125)
-        
-        
+        self.decode_options_rsa_mainframe.place(x=560, y=125)
+        self.decode_output_rsa_mainframe.place(x=560, y=255)
         
         
         # draw debug/log window TODO add the methods for adding/replacing lines (and put default text color in style class for the debug too) && make overall cleanup && fix font class   
-        debug_frame_beautifier = CTkFrame(self, width=1040, height=180, fg_color='#22272D', corner_radius=15, bg_color='#FFFFFF')
-        debug_frame = CTkFrame(debug_frame_beautifier, width=1030, height=162, fg_color='#22272D', corner_radius=15, bg_color='#22272D')
+        debug_frame_beautifier = CTkFrame(self, width=1040, height=180, fg_color='#22272D', corner_radius=15, bg_color='#FFFFFF')           # used for rounded corners
+        debug_frame = CTkFrame(debug_frame_beautifier, width=1030, height=162, fg_color='#22272D', corner_radius=15, bg_color='#22272D')    # used as a container to resize scrolltext
         
         self.debug = scrolledtext.ScrolledText(
             master=debug_frame,
