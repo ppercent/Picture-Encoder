@@ -3,17 +3,13 @@ import math
 
 
 class ImageManager:
-    def __init__(self, image_path, GUI):
-        self.image = Image.open(image_path)
-        self.image = self.image.convert('RGBA')
+    def __init__(self, GUI):
+        self.image = None
         self.GUI = GUI
         self.WATERMARK_KEY_DEFAULT = "001101110000110101011101"
         self.WATERMARK_KEY_ENCODE = "100100001000101101011000"
-        self.WIDTH = self.image.size[0]
-        self.HEIGHT = self.image.size[1]
         self.GLOBAL_INDEX_IMAGE = (0, 0)   # (width, height)
         self.GLOBAL_INDEX_RGB = 0
-        self.PIXEL_COUNT = self.WIDTH * self.HEIGHT
         self.MAX_RGB_INDEX = 2
         # self.print_image_loaded()
 
@@ -100,6 +96,13 @@ class ImageManager:
             return self.read_bits(bit_count - 1, bits + '0')
         else:
             return self.read_bits(bit_count - 1, bits + '1')
+
+    def set_image(self, image_path):
+        self.image = Image.open(image_path)
+        self.image = self.image.convert('RGBA')
+        self.WIDTH = self.image.size[0]
+        self.HEIGHT = self.image.size[1]
+        self.PIXEL_COUNT = self.WIDTH * self.HEIGHT
 
     def encode_watermark(self, text, type, uses_rsa, uses_alpha):
         # watermark 24 bits + character count 24 bits + is using rsa 1 bit + is using alpha 1 bit
