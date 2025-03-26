@@ -45,6 +45,7 @@ class GUI(tk.Tk):
         self.geometry('1080x800+189+64')
         self.resizable(False, False)
         self.configure(bg=style.background_color)
+        # self.rsa = RSA(self)
         self.init_variables()
         self.init_images()
 
@@ -355,12 +356,29 @@ class GUI(tk.Tk):
         except queue.Empty:
             self.after(50, self.check_key_generation_status)
     
+    def debug_draw_key_generated(self, public_key, private_key, error=''):
+        if not error:
+            self.stop_loading()
+            self.replace_line('-----BEGIN PUBLIC KEY-----', 'red')
+            self.add_line(public_key)
+            self.add_line('-----END PUBLIC KEY-----', 'red')
+            self.add_line('\n')
+            self.add_line('-----BEGIN RSA PRIVATE KEY-----', 'red')
+            self.add_line(private_key)
+            self.add_line('-----END RSA PRIVATE KEY-----', 'red')
+            self.draw_rsa_options_private()
+            self.public_key_var.set(public_key)
+            self.private_key_var.set(private_key)
+            self.has_generated_keys = True
+        else:
+            self.self.stop_loading()
+            self.replace_line(f'Erreur lors de la génération des clés: {error}', 'red')
+    
     def get_key_pair_callback(self):
         # pass
-        self.load_dirty_fix('Génération de la clé publique et de la clé privée')
-        threading.Thread(target=self.get_key_pair, daemon=True).start()
-        
-        self.check_key_generation_status()
+        # self.load_dirty_fix('Génération de la clé publique et de la clé privée')
+        threading.Thread(target=lambda: generate_keys(self, int(self.rsa_size_var.get())), daemon=True).start()
+        # self.check_key_generation_status()
     
     def init_rsa_options(self):
         # init widgets
