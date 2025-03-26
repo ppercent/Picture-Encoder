@@ -150,9 +150,7 @@ def encrypt(message_input, public_key):
         num = mod_exp(ord(char),public_key[0],public_key[1])
         #encrypted_list.append(encode_base_64(num))
         encrypted += (str(encode_base_64(num)) + ',')
-        print('\n', encrypted)
-    print('\nfinal: ', encrypted)
-    return encrypted
+    return encrypted[:len(encrypted)-1]
 
 def decrypt(cipher_input, private_key):
     dec_str = ""
