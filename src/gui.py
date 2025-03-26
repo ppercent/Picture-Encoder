@@ -47,6 +47,7 @@ class GUI(tk.Tk):
         self.resizable(False, False)
         self.configure(bg=style.background_color)
         # self.rsa = RSA(self)
+        self.ImageManager = ImageManager(self)
         self.init_variables()
         self.init_images()
 
@@ -73,6 +74,7 @@ class GUI(tk.Tk):
         self.formats = ('PNG', 'TIFF', 'TGA', 'WebP')
         self.rsa_sizes = ('128', '256', '512', '1024')
         self.has_generated_keys = False
+        self.image_to_encode_path = None
         # self.path_to_diff = ''      # TODO trace add here or find a way to trigger logic when overwritten
         # self.create_diff_frame = None
 
@@ -177,24 +179,25 @@ class GUI(tk.Tk):
             return
             
         uses_rsa = False
+        uses_alpha = True if self.use_alpha_var == 'on' else False
         
         if self.use_rsa_var.get() == 'on':
             if self.encode_options_rsa_public_key_field.get():
                 uses_rsa = True
-                text_to_encode = encode_base_64(encrypt(text_to_encode, decode_base_64(self.encode_options_rsa_public_key_field.get())))
+                text_to_encode = encrypt(text_to_encode, decode_base_64(self.encode_options_rsa_public_key_field.get()))
             else:
                 print('nonono')
                 
-        print(text_to_encode)
-        return
+        # encode the image
+        self.ImageManager.set_image(self.image_to_encode_path)
+        self.ImageManager.encode_image(text_to_encode, 'DEFAULT', uses_rsa, uses_alpha)
         
-        self.Encoder = ImageManager(self.image_to_encode_path, self)
-        self.Encoder.encode(text_to_encode)
-        encoded_image_tk = ImageTk.PhotoImage(self.resize(self.Encoder.image,(400,270)))
-
+        # update image preview
+        encoded_image_tk = ImageTk.PhotoImage(self.resize(self.ImageManager.image, (400,270)))
         self.encoded_image_label.config(image=encoded_image_tk)
         self.encoded_image_label.image = encoded_image_tk
-
+        self.encoded_image_label.pack()
+        self.ImageManager.image.show()
         # options=[
         # self.rsa_size_var.get(), 
         
@@ -366,12 +369,11 @@ class GUI(tk.Tk):
         # create the widgets of the third mainframe
         encode_image_placeholder = tk.Label(self.encode_image_output_preview_mainframe, image=self.image_placeholder)
         encode_image_placeholder_label = tk.Label(self.encode_image_output_preview_mainframe, font=('SF Pro', 12, "bold"), text="Image de sortie") #TODO add the aspect ratio of the selected image && its dimensions
-        
+        self.encoded_image_label = tk.Label(encode_input_image_frame)
         
         # pack widgets on the third frame of the encode section
         encode_image_placeholder.place(x=168, y=103)
         encode_image_placeholder_label.place(x=140, y=180)
-        
         
         # create the widgets of the fourth mainframe
         encode_image_preview_button = tk.Button(self.encode_image_button_mainframe, relief='flat', bd=0, activebackground='#7dc9ef', background='#7dc9ef', highlightthickness=0, image=self.preview_image)
