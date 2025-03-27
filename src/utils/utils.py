@@ -232,6 +232,7 @@ class ImageManager:
         self.GUI.decode_output_textbox.configure(state='normal')
         self.GUI.decode_output_textbox.delete("0.0", "end")
         self.GUI.decode_output_textbox.insert('0.0', image_text)
+        self.GUI.add_line('Decodage terminé!','green')
         self.GUI.decode_output_textbox.configure(state='disabled')
         
         
