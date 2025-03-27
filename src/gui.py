@@ -651,7 +651,17 @@ class GUI(tk.Tk):
         decode_input_image_frame.pack(pady=20)
 
         decode_input_decode_button.pack(side='bottom', pady=8)
-        
+
+    def button_start_decoding_callback(self):
+        if self.error_code == 0:
+            pass
+
+    def decode_image_on_load(self, image_path)
+        self.ImageManager.set_image(image_path)
+        self.uses_rsa, self.uses_alpha, self.char_count, self.error_code = self.ImageManager.decode_watermark()
+        if self.uses_rsa == 1 and self.error_code == 0:
+            self.draw_decode_frames(True)
+    
     def draw_decode_frames(self, uses_rsa=False):
         # unplace everything
         self.hide_decode_frames()
