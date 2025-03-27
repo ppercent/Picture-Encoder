@@ -1,2 +1,7 @@
 -windows 10 ou 11
--custom tkinter etc
+Pillow==10.2.0  # Gestion des images
+pycryptodome==3.19.0  # Chiffrement et cryptographie
+customtkinter==5.2.2  # Interface graphique avancée
+numpy==1.26.4  # Manipulation des matrices et calculs
+opencv-python==4.9.0.80  # Traitement avancé des images
+Remarque : Certaines bibliothèques comme base64, math, os, queue, random, threading, et time sont des bibliothèques standard de Python et n’ont pas besoin d’être installées via pip.
