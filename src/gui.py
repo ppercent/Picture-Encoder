@@ -68,6 +68,7 @@ class GUI(tk.Tk):
         self.use_rsa_var = StringVar(value="off")
         self.loading_job = None
         self.key_queue = queue.Queue()
+        self.encoded_image_generated = False
         
         # globals
         self.current_mode = 'encode'
@@ -191,6 +192,7 @@ class GUI(tk.Tk):
         # encode the image
         self.ImageManager.set_image(self.image_to_encode_path)
         self.ImageManager.encode_image(text_to_encode, 'DEFAULT', uses_rsa, uses_alpha)
+        self.encoded_image_generated = True
         
         # update image preview
         encoded_image_tk = ImageTk.PhotoImage(self.resize(self.ImageManager.image, (400,270)))
@@ -366,22 +368,48 @@ class GUI(tk.Tk):
         encode_options_rsa_label.place(x=253, y=20)
         encode_options_rsa_switch.place(x=447, y=22)
         
-        # create the widgets of the third mainframe
+        # create the widgets of the third mainframe mainframe, image=self.image_placeholder)
         encode_image_placeholder = tk.Label(self.encode_image_output_preview_mainframe, image=self.image_placeholder)
         encode_image_placeholder_label = tk.Label(self.encode_image_output_preview_mainframe, font=('SF Pro', 12, "bold"), text="Image de sortie") #TODO add the aspect ratio of the selected image && its dimensions
         self.encoded_image_label = tk.Label(encode_input_image_frame)
         
         # pack widgets on the third frame of the encode section
+    
         encode_image_placeholder.place(x=168, y=103)
         encode_image_placeholder_label.place(x=140, y=180)
         
         # create the widgets of the fourth mainframe
-        encode_image_preview_button = tk.Button(self.encode_image_button_mainframe, relief='flat', bd=0, activebackground='#7dc9ef', background='#7dc9ef', highlightthickness=0, image=self.preview_image)
-        encode_image_save_button = tk.Button(self.encode_image_button_mainframe, relief='flat', bd=0, activebackground='#7dc9ef', background='#7dc9ef', highlightthickness=0, image=self.save_image)
+        encode_image_preview_button = tk.Button(
+            self.encode_image_button_mainframe, relief='flat',
+            bd=0,
+            activebackground='#7dc9ef',
+            background='#7dc9ef',
+            highlightthickness=0,
+            image=self.preview_image,
+            command=self.image_preview_button_callback('show'))
+        encode_image_save_button = tk.Button(
+            self.encode_image_button_mainframe,
+            relief='flat',
+            bd=0,
+            activebackground='#7dc9ef',
+            background='#7dc9ef',
+            highlightthickness=0,
+            image=self.save_image,
+            command=self.image_preview_button_callback('save'))
         
         # pack widgets on the fourth frame of the encode section
         encode_image_preview_button.pack(side='top', pady=3)
         encode_image_save_button.pack(side='bottom', pady=3)
+
+    def image_preview_button_callback(self,button_type):
+        if self.encoded_image_generated == True:
+            if button_type=='show':
+                self.ImageManager.image.show()
+            elif button_type=='save':
+                image_path = filedialog.askdirectory()
+                self.ImageManager.image.save(f"{image_path}/image.png")
+        else:
+             print("The encoded image hasn't been generated yet")
     
     def draw_encode_frames(self):
         self.encode_input_mainframe.place(x=20, y=125)
