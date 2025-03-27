@@ -97,7 +97,7 @@ def generate_keys(gui, key_size):
         time.sleep(0)
     n, r = p * q, (p - 1) * (q - 1)
 
-    e, d = 2, 2  # leurs minimum est de 2
+    e = 2 # le minimum est de 2
 
     while e < r:
         if extended_gcd(e, r)[0] == 1:
