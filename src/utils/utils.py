@@ -62,7 +62,6 @@ class ImageManager:
     def encode_bit(self, bit):
         '''Encodes bit into the channel of a pixel (using RGB) where an even represents 0 and odd represents 1.'''
         # get current pixel & color channel
-
         current_pixel = list(self.image.getpixel(self.GLOBAL_INDEX_IMAGE))
         current_channel = current_pixel[self.GLOBAL_INDEX_RGB]
 
@@ -220,7 +219,7 @@ class ImageManager:
             uses_alpha = int(self.read_bits(1), 2)
             self.MAX_RGB_INDEX = 3 if uses_alpha else 2
             return (uses_rsa, uses_alpha, char_count, 0, self.GLOBAL_INDEX_IMAGE, self.GLOBAL_INDEX_RGB)
-        return (0, 0, 0, 1)
+        return (0, 0, 0, 1, (0, 0), 0)
 
     def decode_image(self, uses_rsa, uses_alpha, char_count, index, index_rgb, private_key=''):
         self.GLOBAL_INDEX_IMAGE = index
@@ -243,7 +242,6 @@ class ImageManager:
         self.GUI.decode_output_textbox.insert('0.0', image_text)
         self.GUI.decode_output_textbox.configure(state='disabled')
         self.GUI.add_line('Decodage terminé :3','green')
-        
 
 if __name__ == '__main__':
     IM = ImageManager(0)
