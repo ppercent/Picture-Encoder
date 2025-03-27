@@ -122,15 +122,15 @@ def encode_base_64(key):
     return base64_key
 
 
-def decode_base_64(base64_key):
-    base64_bytes = base64_key.encode("ascii")
+def decode_base_64(base64_char):
+    base64_bytes = base64_char.encode("ascii")
     key_bytes = base64.b64decode(base64_bytes)
     key = key_bytes.decode("ascii")
     return int(key)
 
-def decode_key(base64_key):
+def decode_text(base64_text):
     key = []
-    for element in tuple([x for x in base64_key.split(",")]):
+    for element in tuple([x for x in base64_text.split(",")]):
         print(element)
         key.append(decode_base_64(element))
     return key
@@ -174,7 +174,7 @@ def decrypt(cipher_input, private_key):
 
 # public_key,private_key=generate_keys(size)            
 # print('public key: ', public_key,'private key: ', private_key)
-# public_key,private_key=decode_key(public_key),decode_key(private_key) 
+# public_key,private_key=decode_text(public_key),decode_text(private_key) 
 # print(public_key,private_key)
 # encryptedMessage=encrypt(message, public_key)
 # print(encryptedMessage)
