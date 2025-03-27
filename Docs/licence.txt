@@ -1,0 +1,9 @@
+Ce projet est sous licence GNU General Public License v3.0 ou supérieure.
+
+Vous pouvez redistribuer et modifier ce projet sous les termes de la licence GPL version 3, ou (à votre choix) toute version ultérieure, selon les termes de la licence complète.
+
+La licence complète est disponible à l'adresse suivante : https://www.gnu.org/licenses/gpl-3.0.html
+
+Ce projet est distribué dans l'espoir qu'il sera utile, mais SANS AUCUNE GARANTIE ; sans même la garantie implicite de COMMERCIALISATION ou d'ADAPTATION À UN BUT PARTICULIER. Consultez la licence GNU GPL pour plus de détails.
+
+Pour plus d'informations, consultez le fichier LICENSE ou le site officiel de la GNU GPL.
