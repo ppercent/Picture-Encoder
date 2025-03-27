@@ -335,7 +335,7 @@ class GUI(tk.Tk):
         
         
         # create the widgets of the second mainframe TODO rename with this pattern: encode_options_do_something -> do_something (remove useless crap & cleanup) && args orders && add_field ? && add on focus for textbox
-        encode_options_title_label = ttk.Label(self.encode_options_mainframe, text='Options', font=('Consolas', 20, 'bold'), foreground='#000000', background='#D9D9D9')
+                encode_options_title_label = ttk.Label(self.encode_options_mainframe, text='Options', font=('Consolas', 17, 'bold'), foreground='#000000', background='#D9D9D9')
         
         encode_options_output_name_label = ttk.Label(self.encode_options_mainframe, text='Nom de sortie', font=('SF Pro', 14), foreground='#000000', background='#D9D9D9')
         self.encode_options_output_name_field = CTkEntry(
@@ -370,9 +370,9 @@ class GUI(tk.Tk):
             width=40,
             height=25)
         
-        encode_options_separation_bar_frame = CTkFrame(self.encode_options_mainframe, width=5, height=140, fg_color='black', corner_radius=15, bg_color='#D9D9D9')
+        encode_options_separation_bar_frame = CTkFrame(self.encode_options_mainframe, width=3, height=200, fg_color='black', corner_radius=15, bg_color='#D9D9D9')
         
-        encode_options_rsa_label = ttk.Label(self.encode_options_mainframe, text="Encrypter avec RSA", font=('SF Pro', 14, 'bold'), foreground='#000000', background='#D9D9D9')
+        encode_options_rsa_label = ttk.Label(self.encode_options_mainframe, text="Encrypter avec RSA", font=('SF Pro', 14), foreground='#000000', background='#D9D9D9')
         encode_options_rsa_switch = CTkSwitch(
             self.encode_options_mainframe,
             text='',
@@ -388,7 +388,7 @@ class GUI(tk.Tk):
             command=lambda: self.rsa_switch_callback())
         
         # pack widgets on the second frame of the encode section
-        encode_options_title_label.pack(anchor='w', padx=5, pady=4)
+        encode_options_title_label.pack(anchor='w', padx=75, pady=4)
         
         encode_options_output_name_label.place(x=10, y=40)
         self.encode_options_output_name_field.place(x=10, y=65)
@@ -399,10 +399,10 @@ class GUI(tk.Tk):
         encode_options_should_use_alpha_label.place(x=10, y=137) #x=250, y=110
         encode_options_should_use_alpha_switch.place(x=200, y=139)
         
-        encode_options_separation_bar_frame.place(x=240, y=34)
+        encode_options_separation_bar_frame.place(x=240, y=0)
        
-        encode_options_rsa_label.place(x=253, y=20)
-        encode_options_rsa_switch.place(x=447, y=22)
+        encode_options_rsa_label.place(x=253, y=10)
+        encode_options_rsa_switch.place(x=447, y=12)
         
         # create the widgets of the third mainframe
         self.encode_image_placeholder = tk.Label(self.encode_image_output_preview_mainframe, image=self.image_placeholder)
