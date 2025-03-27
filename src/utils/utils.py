@@ -1,6 +1,8 @@
 from PIL import Image
 import math
-
+import sys
+import os
+from crypto.rsa import decrypt, decode_text
 
 class ImageManager:
     def __init__(self, GUI):
@@ -209,24 +211,34 @@ class ImageManager:
             uses_rsa = int(self.read_bits(1), 2)
             uses_alpha = int(self.read_bits(1), 2)
             self.MAX_RGB_INDEX = 3 if uses_alpha else 2
-            return (uses_rsa, uses_alpha, char_count, 0)
+            return (uses_rsa, uses_alpha, char_count, 0, self.GLOBAL_INDEX_IMAGE, self.GLOBAL_INDEX_RGB)
         return (0, 0, 0, 1)
 
-
-    def decode_image(self):
-        # get type and char_count using the watermark
-        uses_rsa, uses_alpha, char_count, error_code = self.decode_watermark()
-        # self.GUI.show_decrypt_fields
-        # fetches private key
-        private_key = r'MzA4Nzg0ODE5MjUzMzUxNTk3NjA1NDEyODI2ODUxNzQ0ODQ0NzE1MTkxNzMwNTM2ODMxNTg2OTUzMzk0OTQ0Nzg3Njc1NTQzNzU5ODc1MzcwNTI2OTU1NjA2MzI2NjMwNTc1MDg5NjA5MTE2MTE0MTcyMTkzMDc0MTY2NTczNTcxMDA4OTczNDAwNjg5MTY2NTk1NjIxODYyODk5NTY1NjQ1OTc5MDAyNzgyNzIzMzA4NDA4ODUxNzQ3NTI1MTAzMDY4MjY3OTEzMDI5MTY5NDI0OTAwMzAwNzgxNTU3OTE4NTY4MTA4MzE1MzQ1Nzg2NzIzMDUwMTk2OTczNjYyOTM1OTg4MzE2ODg2NTcwMTY2ODcwODcwODQ4Mjk5MjEzNDMxNzQwNTI4MTE1ODMwNzM2NTIxODcwODMzMjU2ODA3ODcwMjA1MTMwNjQ4NTM0OTM1OTMxNTI2OTkzODQ0MzAxNjAyNjUzMzk2OTY1MzU2NTA3MTI1OTIzNTEzOTE3MjQ2ODY1OTg5MTE2MTg0OTAzNzk2MTAzNTA4NDkwNTU5MzkwMDA1MTU5MzMzOTY5ODYwNTEyMDIxNDE1Nzk0NjAwMDI2NjM5Mjg2Njg2MjE0MjI2MjgwNzQ5MDYyNjc5NTA2MTg3NDY4NzYxMzEyMTM3Mjg3MjIyNDc1NTI1MDU5MjA0NjM3OTA3MDk4MjM3MjY2MDgyNzE1NTExOTkyNDg0MjYxNTg0NDQ5OTExMzE3OTQyMzY3NDA5MTc5MTkwMzEwOTMyODc5NjU4NDA5MjIzNTI0MjAwMzY4OTM5MzE0Njg3NzM1NSw0ODc4MjMyMjU0MTQwMjg4MjIyMDEyMTI1MjAxODE0NTU5ODM5MjExMzY4MTYwMzg4Mjk1ODkyNjY3MzQ1NDM0MjI5MDYzODEzMzk2MDM3Mzc2NjgyNTg5OTA5NTYzODYyNTY0MzQ4NjU4MjY5MzY2MDE3NTYxMDU5Nzc5Mzg3NDg3NTQwMjc3NDg2NDA4NDM2NDgxNjgxODc5NjAxODUwOTgyOTQ3ODUxNTE4MjcxMjYyNjc2NzI3MTUxOTM4ODU0OTk5MDQzMDY5NzQ4NzEyNzMzMjI5ODIzNTAzMjI1NzY1ODI4MjI5NTQ2OTEyNDUyNjE3MDg0NDU5NTUzNTc3MDU0NjA3MTU3MjM3MjQ2MzQ1OTI2MDc4MDE4NzY5NDkwMjA3NTAzOTcwNzc1MjMxNjc5Myw5NDk0Nzc2MDczNTg1MTg2NTM4MTU3MjY4OTE5MzA1NzUwMTg1OTkxMTEzMzkxOTU3Njk2NjY1MTMzODkzNjA4MTI1OTYxNjIxMjY5MjY2MTg0NzQ3NTYwNTI1NjMyNTc5MDE0MDY1NDA1MDIxNzA2NTM5NDI4NDExNTc0NDU2NDY2MDUwMDI4MTI0NzE5MjkxNDc3NTMwNTY3MDEzOTc2OTMzMjU5OTg1MDY1MzM0OTY0MDE1MDc3NzI4NDI3MzI0MDY3NDQ1Njc3MTI2Mzc3ODU0ODQ3NzY4MjE2NTY5MjczNTU3MjM2MDc4MzY3MDM4MjA5NzMyMzQ3NjU5ODMzNzQwNTcyOTQxMzg0ODE0MTg3ODM2NDE1NTk4NTAwMTIxOTE1MTE1NTE4NTEwNzk2MjA5Nw=='
-        
+    def decode_image(self, uses_rsa, uses_alpha, char_count, index, index_rgb, private_key=''):
+        self.GLOBAL_INDEX_IMAGE = index
+        self.GLOBAL_INDEX_RGB = index_rgb
         image_text = self.get_image_text(char_count)
-        print(image_text)
-        # return image_text
+        
+        if uses_rsa == 1:
+            try:
+                image_text = decrypt(image_text, decode_text(private_key))
+                self.GUI.decode_output_textbox_rsa.configure(state='normal')
+                self.GUI.decode_output_textbox_rsa.delete("0.0", "end")
+                self.GUI.decode_output_textbox_rsa.insert('0.0', image_text)
+                self.GUI.decode_output_textbox_rsa.configure(state='disabled')
+            except Exception as e:
+                self.GUI.add_line(f'Erreur lors de la décryption RSA du texte: {e}', 'red')
+        
+        self.GUI.decode_output_textbox.configure(state='normal')
+        self.GUI.decode_output_textbox.delete("0.0", "end")
+        self.GUI.decode_output_textbox.insert('0.0', image_text)
+        self.GUI.decode_output_textbox.configure(state='disabled')
+        
+        
 
 if __name__ == '__main__':
     IM = ImageManager(0)
-    IM.set_image(r'utils\todecode.PNG')
+    IM.set_image(r'output.png')
     # text = 'please work ? like actually bro'
     # IM.encode_image(text, 'DEFAULT', False, True)
     # IM.image.save('alphas.png', format='PNG')
