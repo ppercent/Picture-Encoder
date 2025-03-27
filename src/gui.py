@@ -73,7 +73,7 @@ class GUI(tk.Tk):
         
         # globals
         self.current_mode = 'encode'
-        self.formats = ('png', 'tiff', 'tga', 'webp')
+        self.formats = ('png','jpg','jpeg', 'bmp', 'tiff', 'tif', 'webp', 'tga')
         self.rsa_sizes = ('128', '256', '512', '1024')
         self.has_generated_keys = False
         self.encoded_image_generated = False
@@ -89,6 +89,7 @@ class GUI(tk.Tk):
         self.image_mainframe_bg = tk.PhotoImage(file=base_dir + '\\assets\\Frame 1\\background.png')
         self.image_placeholder = tk.PhotoImage(file=base_dir + '\\assets\\image_placeholder.png')
         self.save_image = tk.PhotoImage(file=base_dir + '\\assets\\save.png')
+        self.copy_image = tk.PhotoImage(file=base_dir + '\\assets\\copy.png')
         self.preview_image = tk.PhotoImage(file=base_dir + '\\assets\\show.png')
         # self.iconbitmap(base_dir + '\\assets\\icon.ico')
         # self.enter_icon = tk.PhotoImage(file=base_dir + '\\assets\\enter.png')
@@ -183,7 +184,7 @@ class GUI(tk.Tk):
             return
         
         if not self.image_to_encode_path:
-            self.add_line("Entrer une image (image gen flashbacks)", 'red')
+            self.add_line("Entrer une image", 'red')
             return
             
         uses_rsa = False
@@ -209,6 +210,7 @@ class GUI(tk.Tk):
         self.encoded_image_preview_label.config(image=encoded_image_tk)
         self.encoded_image_preview_label.image = encoded_image_tk
         self.encoded_image_preview_label.pack(expand=True)
+        self.add_line('Encodage terminé!','green')
         self.encode_image_placeholder.place_forget()
         self.encode_image_placeholder_label.place_forget()
         
@@ -224,7 +226,7 @@ class GUI(tk.Tk):
         # ]
         # print(options)
     def load_input_image(self, frame, widgets, type):
-        types = [("Images", "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tiff;*.tif;*.webp")]
+        types = [("Images", "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tiff;*.tif;*.webp;*tga")]
         file_path = filedialog.askopenfilename(filetypes=types) 
         if not file_path:
             return
@@ -247,8 +249,8 @@ class GUI(tk.Tk):
                 self.draw_decode_frames()
                 
         try:
-            print(file_path)
             loaded_image = Image.open(file_path)
+            self.add_line(f"Image chargée avec succès! ({loaded_image.size[0]}x{loaded_image.size[1]}) {file_path}")
             loaded_image = self.resize(loaded_image, (frame.cget('width'),frame.cget('height')))
             loaded_image_tk = ImageTk.PhotoImage(loaded_image)
             image_label.config(image=loaded_image_tk)
@@ -259,6 +261,7 @@ class GUI(tk.Tk):
                 widget.place_forget()
             
             image_label.bind('<Button-1>', lambda e: self.load_input_image(frame, [], type)) 
+            
         except Exception as e:
             pass
 
@@ -301,7 +304,7 @@ class GUI(tk.Tk):
         encode_input_image_frame.pack_propagate(False)
             
         encode_input_image_placeholder = tk.Label(encode_input_image_frame, image=self.image_placeholder)
-        encode_input_image_label = tk.Label(encode_input_image_frame, font=('SF Pro', 10, "bold"), text="Collez une image pour un encodage indétectable\nou laissez vide pour générer une image (plus d'espace pour encoder)")
+        encode_input_image_label = tk.Label(encode_input_image_frame, font=('SF Pro', 10, "bold"), text="Choisir une image dans laquelle encoder votre message")
         
         self.original_image_label = tk.Label(encode_input_image_frame)
         # encode_input_image_frame.bind('<Button-1>', lambda e: self.load_input_image(encode_input_image_frame,[encode_input_image_placeholder,encode_input_image_label],'encode_input'))
@@ -328,14 +331,14 @@ class GUI(tk.Tk):
         self.encode_input_textbox.insert("0.0", "Entrez le texte à encoder...")
         
         encode_input_image_placeholder.place(x=190, y=40)
-        encode_input_image_label.place(x=2, y=110)
+        encode_input_image_label.place(x=50, y=110)
         encode_input_image_frame.pack()
         
         encode_input_encode_button.pack(side='bottom', pady=8)
         
         
         # create the widgets of the second mainframe TODO rename with this pattern: encode_options_do_something -> do_something (remove useless crap & cleanup) && args orders && add_field ? && add on focus for textbox
-                encode_options_title_label = ttk.Label(self.encode_options_mainframe, text='Options', font=('Consolas', 17, 'bold'), foreground='#000000', background='#D9D9D9')
+        encode_options_title_label = ttk.Label(self.encode_options_mainframe, text='Options', font=('Consolas', 17, 'bold'), foreground='#000000', background='#D9D9D9')
         
         encode_options_output_name_label = ttk.Label(self.encode_options_mainframe, text='Nom de sortie', font=('SF Pro', 14), foreground='#000000', background='#D9D9D9')
         self.encode_options_output_name_field = CTkEntry(
@@ -432,6 +435,7 @@ class GUI(tk.Tk):
             image=self.save_image,
             command=lambda: self.image_preview_button_callback('save'))       
        
+       
         # pack widgets on the fourth frame of the encode section
         encode_image_preview_button.pack(side='top', pady=3)
         encode_image_save_button.pack(side='bottom', pady=3)
@@ -449,7 +453,7 @@ class GUI(tk.Tk):
                         extension = self.output_format_var.get()
                         img_name = f'{self.output_name_var.get()}.{extension}'
                         self.ImageManager.image.save(f"{image_path}//{img_name}", format=extension.upper())
-                        self.add_line(f'Image enregistré avec succès: {image_path}//{img_name}', 'green')
+                        self.add_line(f"Image enregistrée avec succès! Chemin d'accès: {image_path}//{img_name}", 'green')
                     except Exception as e:
                         self.add_line(f"[-] Erreur lors de l'enregistrement de {img_name}: {e}", 'red')
         else:
@@ -473,49 +477,20 @@ class GUI(tk.Tk):
         except Exception as e:
             self.key_queue.put(('error', str(e)))
     
-    def check_key_generation_status(self):
-        """Checks queue from main thread"""
-        try:
-            result = self.key_queue.get_nowait()
-        
-            if result[0] == 'success':
-                useless_var_lol, public_key, private_key = result
-                self.stop_loading()
-                self.replace_line('-----BEGIN PUBLIC KEY-----', 'red')
-                self.add_line(public_key)
-                self.add_line('-----END PUBLIC KEY-----', 'red')
-                self.add_line('\n')
-                self.add_line('-----BEGIN RSA PRIVATE KEY-----', 'red')
-                self.add_line(private_key)
-                self.add_line('-----END RSA PRIVATE KEY-----', 'red')
-                self.draw_rsa_options_private()
-                self.public_key_var.set(public_key)
-                self.private_key_var.set(private_key)
-                self.has_generated_keys = True
-            else:
-                self.stop_loading()
-                self.add_line(f"Error: {result[1]}", 'red')
-            
-        except queue.Empty:
-            self.after(50, self.check_key_generation_status)
-    
     def debug_draw_key_generated(self, public_key, private_key, error=''):
         if not error:
-            self.stop_loading()
-            self.replace_line('-----BEGIN PUBLIC KEY-----', 'red')
+            self.add_line('\n-----DEBUT CLÉ PUBLIQUE-----', 'red')
             self.add_line(public_key)
-            self.add_line('-----END PUBLIC KEY-----', 'red')
-            self.add_line('\n')
-            self.add_line('-----BEGIN RSA PRIVATE KEY-----', 'red')
+            self.add_line('-----FIN CLÉ PUBLIQUE-----', 'red')
+            self.add_line('\n-----DEBUT CLÉ PRIVÉE-----', 'red')
             self.add_line(private_key)
-            self.add_line('-----END RSA PRIVATE KEY-----', 'red')
+            self.add_line('-----FIN CLÉ PRIVÉE-----\n', 'red')
             self.draw_rsa_options_private()
             self.public_key_var.set(public_key)
             self.private_key_var.set(private_key)
             self.has_generated_keys = True
         else:
-            self.self.stop_loading()
-            self.replace_line(f'Erreur lors de la génération des clés: {error}', 'red')
+            self.add_line(f'Erreur lors de la génération des clés: {error}', 'red')
     
     def get_key_pair_callback(self):
         # pass
@@ -665,14 +640,24 @@ class GUI(tk.Tk):
             fg_color='#f1efef',
             text_color='#000000',
             border_color='#D9D9D9',
-            border_width=1)
-        
+            border_width=1,)
+        encode_image_copy_button = tk.Button(
+            self.decode_output_mainframe,
+            relief='flat',
+            bd=0,
+            activebackground='#d9d9d9',
+            background='#d9d9d9',
+            highlightthickness=0,
+            image=self.copy_image,
+            command=lambda: self.copy_decode_output_textbox())
+  
         # place widgets
         decode_ouput_label.pack(pady=4)
         self.decode_output_textbox.pack()
         self.decode_output_textbox.configure(state='normal')
         self.decode_output_textbox.insert("0.0", "Nothing here...")
         self.decode_output_textbox.configure(state='disabled')
+        encode_image_copy_button.place(x=450, y=5)
     
     def init_decode_frames(self):
         # init decode mainframes
@@ -694,7 +679,7 @@ class GUI(tk.Tk):
         decode_input_image_frame.pack_propagate(False)
             
         decode_input_image_placeholder = tk.Label(decode_input_image_frame, image=self.image_placeholder)
-        decode_input_image_label = tk.Label(decode_input_image_frame, font=('SF Pro', 10, "bold"), text="Collez une image pour la décoder")
+        decode_input_image_label = tk.Label(decode_input_image_frame, font=('SF Pro', 10, "bold"), text="Choisir l'image pour la décoder")
         self.encoded_image_label = tk.Label(decode_input_image_frame)
         # decode_input_image_frame.bind('<Button-1>', lambda e: self.load_input_image(decode_input_image_frame,[decode_input_image_placeholder,decode_input_image_label],'decode_input'))
 
@@ -715,17 +700,16 @@ class GUI(tk.Tk):
     
     
     def button_start_decoding_callback(self):
-        print(self.uses_rsa)
-        print(self.uses_alpha)
-        print(self.char_count)
-        
         if self.error_code == 0:
             if self.uses_rsa == 1:
                 self.ImageManager.decode_image(self.uses_rsa, self.uses_alpha, self.char_count, self.index, self.index_rgb, self.decrypt_private_key_var.get())
             else:
-                print('reached')
                 self.ImageManager.decode_image(self.uses_rsa, self.uses_alpha, self.char_count, self.index, self.index_rgb)
                 
+    def copy_decode_output_textbox(self):
+        self.clipboard_clear()
+        self.clipboard_append(self.decode_output_textbox.get("0.0", "end-1c"))
+        self.update()
 
     def draw_decode_frames(self, uses_rsa=False):
         # unplace everything
