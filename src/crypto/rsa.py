@@ -12,7 +12,7 @@ import base64
 
 debut=time.time()
 
-size=128
+size=16
 message=r"""Lorem """
 
 def mod_exp(base, exponent, modulus):
@@ -79,7 +79,7 @@ def miller_rabin(n):
             return False
     return True
 
-def generate_keys(gui, key_size):
+def generate_keys(key_size):
     p, q = 0, 0
 
     # Loop to generate p
@@ -108,15 +108,15 @@ def generate_keys(gui, key_size):
 
     d = mod_exp(e, -1, r)
 
-    public_key_string = ','.join((str(e), str(n)))
-    private_key_string = ','.join((str(d), str(p), str(q)))
+    public_key_string = ','.join((str(encode_base_64(e)), str(encode_base_64(n))))
+    private_key_string = ','.join((str(encode_base_64(d)), str(encode_base_64(p)), str(encode_base_64(q))))
 
-    gui.debug_draw_key_generated(encode_base_64(public_key_string), encode_base_64(private_key_string))
+    #gui.debug_draw_key_generated(encode_base_64(public_key_string), encode_base_64(private_key_string))
+    return public_key_string,private_key_string
 
 def encode_base_64(key):
     key = str(key)
     key_bytes = key.encode("ascii")
-
     base64_bytes = base64.b64encode(key_bytes)
     base64_key = base64_bytes.decode("ascii")
     return base64_key
@@ -126,7 +126,15 @@ def decode_base_64(base64_key):
     base64_bytes = base64_key.encode("ascii")
     key_bytes = base64.b64decode(base64_bytes)
     key = key_bytes.decode("ascii")
-    return tuple([int(x) for x in key.split(",")])
+    return int(key)
+
+def decode_key(base64_key):
+    key = []
+    for element in tuple([x for x in base64_key.split(",")]):
+        print(element)
+        key.append(decode_base_64(element))
+    return key
+
 # Implementation of the Chinese Remainder Theorem 
 def chinese_remainder_theorem(dq, dp, p, q, c): 
       
@@ -164,12 +172,12 @@ def decrypt(cipher_input, private_key):
         dec_str = dec_str + chr(char)
     return dec_str
 
-# public_key,private_key=generate_keys()            
+# public_key,private_key=generate_keys(size)            
 # print('public key: ', public_key,'private key: ', private_key)
-# public_key,private_key=decode_base_64(public_key),decode_base_64(private_key) 
-
-# encryptedEmoji=encrypt(message, public_key)
-# print(encryptedEmoji)
-# decryptedEmoji=decrypt(encryptedEmoji,private_key)
-# print(decrypt(encryptedEmoji,private_key))
+# public_key,private_key=decode_key(public_key),decode_key(private_key) 
+# print(public_key,private_key)
+# encryptedMessage=encrypt(message, public_key)
+# print(encryptedMessage)
+# decryptedMessage=decrypt(encryptedMessage,private_key)
+# print(decrypt(encryptedMessage,private_key))
 # print(time.time()-debut)
