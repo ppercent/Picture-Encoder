@@ -154,10 +154,13 @@ def encrypt(message_input, public_key):
 
 def decrypt(cipher_input, private_key):
     dec_str = ""
+    cipher_input = cipher_input.split(',')
     dp = mod_exp(private_key[0], 1, private_key[1] - 1) 
     dq = mod_exp(private_key[0], 1, private_key[2] - 1) 
-    for num in cipher_input:
-        char = chinese_remainder_theorem(dq, dp, private_key[1], private_key[2], num)
+    
+    for base64num in cipher_input:
+        base10num = decode_base_64(base64num)
+        char = chinese_remainder_theorem(dq, dp, private_key[1], private_key[2], base10num)
         dec_str = dec_str + chr(char)
     return dec_str
 
