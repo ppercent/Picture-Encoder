@@ -62,6 +62,7 @@ class ImageManager:
     def encode_bit(self, bit):
         '''Encodes bit into the channel of a pixel (using RGB) where an even represents 0 and odd represents 1.'''
         # get current pixel & color channel
+
         current_pixel = list(self.image.getpixel(self.GLOBAL_INDEX_IMAGE))
         current_channel = current_pixel[self.GLOBAL_INDEX_RGB]
 
@@ -105,8 +106,7 @@ class ImageManager:
         self.WIDTH = self.image.size[0]
         self.HEIGHT = self.image.size[1]
         self.PIXEL_COUNT = self.WIDTH * self.HEIGHT
-        self.GLOBAL_INDEX_RGB = 0
-        self.GLOBAL_INDEX_IMAGE = (0, 0)
+        self.reset_globals()
 
     def encode_watermark(self, text, type, uses_rsa, uses_alpha):
         # watermark 24 bits + character count 24 bits + is using rsa 1 bit + is using alpha 1 bit
@@ -150,12 +150,20 @@ class ImageManager:
             self.encode_bits(byte_len_indicator)
             self.encode_bits(bytes)
 
+    def reset_globals(self):
+        self.GLOBAL_INDEX_RGB = 0
+        self.GLOBAL_INDEX_IMAGE = (0, 0)
+
     def encode_image(self, text, type, uses_rsa, uses_alpha):
+        # reset globals
+        self.reset_globals()
+        
         # encode the watermark
         self.encode_watermark(text, type, uses_rsa, uses_alpha)
-
+        
         # encode the text
         self.MAX_RGB_INDEX = 3 if uses_alpha else 2
+        print('USES ALPHA: ', uses_alpha, ' INDEX: ', self.MAX_RGB_INDEX)
         self.encode_text(text)
         print('[+] Image encoding is done...')
     
@@ -217,6 +225,7 @@ class ImageManager:
     def decode_image(self, uses_rsa, uses_alpha, char_count, index, index_rgb, private_key=''):
         self.GLOBAL_INDEX_IMAGE = index
         self.GLOBAL_INDEX_RGB = index_rgb
+        self.MAX_RGB_INDEX = 3 if uses_alpha == 1 else 2
         image_text = self.get_image_text(char_count)
         
         if uses_rsa == 1:
@@ -232,9 +241,8 @@ class ImageManager:
         self.GUI.decode_output_textbox.configure(state='normal')
         self.GUI.decode_output_textbox.delete("0.0", "end")
         self.GUI.decode_output_textbox.insert('0.0', image_text)
-        self.GUI.add_line('Decodage terminé!','green')
         self.GUI.decode_output_textbox.configure(state='disabled')
-        
+        self.GUI.add_line('Decodage terminé :3','green')
         
 
 if __name__ == '__main__':
