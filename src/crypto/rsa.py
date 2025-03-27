@@ -79,7 +79,7 @@ def miller_rabin(n):
             return False
     return True
 
-def generate_keys(key_size):
+def generate_keys(gui, key_size):
     p, q = 0, 0
 
     # Loop to generate p
@@ -111,8 +111,7 @@ def generate_keys(key_size):
     public_key_string = ','.join((str(encode_base_64(e)), str(encode_base_64(n))))
     private_key_string = ','.join((str(encode_base_64(d)), str(encode_base_64(p)), str(encode_base_64(q))))
 
-    #gui.debug_draw_key_generated(encode_base_64(public_key_string), encode_base_64(private_key_string))
-    return public_key_string,private_key_string
+    gui.debug_draw_key_generated(public_key_string, private_key_string)
 
 def encode_base_64(key):
     key = str(key)
@@ -123,12 +122,14 @@ def encode_base_64(key):
 
 
 def decode_base_64(base64_char):
+    print('char to decode: ', base64_char)
     base64_bytes = base64_char.encode("ascii")
     key_bytes = base64.b64decode(base64_bytes)
     key = key_bytes.decode("ascii")
     return int(key)
 
 def decode_text(base64_text):
+    print('text to decode: ', base64_text)
     key = []
     for element in tuple([x for x in base64_text.split(",")]):
         print(element)
@@ -161,15 +162,24 @@ def encrypt(message_input, public_key):
     return encrypted[:len(encrypted)-1]
 
 def decrypt(cipher_input, private_key):
+    print('key: ', private_key)
     dec_str = ""
     cipher_input = cipher_input.split(',')
     dp = mod_exp(private_key[0], 1, private_key[1] - 1) 
     dq = mod_exp(private_key[0], 1, private_key[2] - 1) 
-    
+    print('cipher_input: ', cipher_input)
     for base64num in cipher_input:
+        print('base64 cipher char: ', base64num)
         base10num = decode_base_64(base64num)
         char = chinese_remainder_theorem(dq, dp, private_key[1], private_key[2], base10num)
         dec_str = dec_str + chr(char)
+        print('char: ', char)
+        print('sum: ', chr(char))
+        if char == 224:
+            print('NIGGA WHAT HAPPENED: ')
+            print('char1: ', chr(char))
+            print('char2: ', chr(224))
+            print('char3: ', chr(int(char)))
     return dec_str
 
 # public_key,private_key=generate_keys(size)            
