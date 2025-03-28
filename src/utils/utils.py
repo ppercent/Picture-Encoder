@@ -4,15 +4,16 @@ import sys
 import os
 from crypto.rsa import decrypt, decode_text
 
+        
 class ImageManager:
     def __init__(self, GUI):
         self.image = None
         self.GUI = GUI
-        self.WATERMARK_KEY_DEFAULT = "001101110000110101011101"
-        self.WATERMARK_KEY_ENCODE = "100100001000101101011000"
+        self.WATERMARK_KEY = "001101110000110101011101"
         self.GLOBAL_INDEX_IMAGE = (0, 0)   # (width, height)
         self.GLOBAL_INDEX_RGB = 0
         self.MAX_RGB_INDEX = 2
+        self.ENCODED_CHARACTERS_COUNTER = 0
         # self.print_image_loaded()
 
     def print_image_loaded(self):
@@ -62,6 +63,9 @@ class ImageManager:
     def encode_bit(self, bit):
         '''Encodes bit into the channel of a pixel (using RGB) where an even represents 0 and odd represents 1.'''
         # get current pixel & color channel
+        if self.GLOBAL_INDEX_IMAGE[0] >= self.WIDTH or self.GLOBAL_INDEX_IMAGE[1] >= self.HEIGHT:
+            raise IndexError("index dimension error: out of bound")
+            
         current_pixel = list(self.image.getpixel(self.GLOBAL_INDEX_IMAGE))
         current_channel = current_pixel[self.GLOBAL_INDEX_RGB]
 
@@ -77,7 +81,6 @@ class ImageManager:
         self.update_globals()
 
     def encode_bits(self, bits):
-        # print(f'\n[+] Started encoding {len(bits)} bits -> {bits}')
         for bit in bits:
             self.encode_bit(bit)
 
@@ -107,69 +110,73 @@ class ImageManager:
         self.PIXEL_COUNT = self.WIDTH * self.HEIGHT
         self.reset_globals()
 
-    def encode_watermark(self, text, type, uses_rsa, uses_alpha):
+    def encode_watermark(self, text, uses_rsa, uses_alpha):
         # watermark 24 bits + character count 24 bits + is using rsa 1 bit + is using alpha 1 bit
-        # the watermark is encoded  WITHOUT the use of alpha
+        # the watermark is encoded  WITHOUT the use of alpha channels
         
         watermark_charcount = format(len(text), '024b')
         uses_alpha = '1' if uses_alpha else '0'
         uses_rsa = '1' if uses_rsa else '0'
         
-        if type == 'DEFAULT':
-            # 24 bits watermark
-            self.encode_bits(self.WATERMARK_KEY_DEFAULT)
+        # 24 bits watermark
+        self.encode_bits(self.WATERMARK_KEY)
             
-            # 24 bits character count
-            self.encode_bits(watermark_charcount)
+        # 24 bits character count
+        self.encode_bits(watermark_charcount)
             
-            # 1 bit is using rsa
-            self.encode_bits(uses_rsa)
+        # 1 bit is using rsa
+        self.encode_bits(uses_rsa)
             
-            # 1 bit is using rsa
-            self.encode_bits(uses_alpha)
+        # 1 bit is using rsa
+        self.encode_bits(uses_alpha)
             
-        elif type == 'ENCODE':
-            # 24 bits watermark
-            self.encode_bits(self.WATERMARK_KEY_ENCODE)
-            
-            # 24 bits character count
-            self.encode_bits(watermark_charcount)    # TODO it might fuck up with RSA here, changes are required
-            
-            # 1 bit is using rsa
-            self.encode_bits(uses_rsa)
-            
-            # 1 bit is using rsa
-            self.encode_bits(uses_alpha)
-        else:
-            print('... dont be stupid')
 
     def encode_text(self, text):
         for char in text:
             bytes, byte_len_indicator = self.get_binary_form(char)
             self.encode_bits(byte_len_indicator)
             self.encode_bits(bytes)
+            self.ENCODED_CHARACTERS_COUNTER += 1
 
     def reset_globals(self):
         self.GLOBAL_INDEX_RGB = 0
         self.GLOBAL_INDEX_IMAGE = (0, 0)
+        self.ENCODED_CHARACTERS_COUNTER = 0
 
-    def encode_image(self, text, type, uses_rsa, uses_alpha):
+    def encode_image(self, text, uses_rsa, uses_alpha):
         # reset globals
         self.reset_globals()
+        try:
+            # encode the watermark
+            self.encode_watermark(text, uses_rsa, uses_alpha)
         
-        # encode the watermark
-        self.encode_watermark(text, type, uses_rsa, uses_alpha)
-        
-        # encode the text
-        self.MAX_RGB_INDEX = 3 if uses_alpha else 2
-        print('USES ALPHA: ', uses_alpha, ' INDEX: ', self.MAX_RGB_INDEX)
-        self.encode_text(text)
-        print('[+] Image encoding is done...')
+            # encode the text
+            self.MAX_RGB_INDEX = 3 if uses_alpha else 2
+            self.encode_text(text)
+            
+            coef = 4 if uses_alpha == 1 else 3
+            heigth_index = 0 if self.GLOBAL_INDEX_IMAGE[1] == 0 else (self.GLOBAL_INDEX_IMAGE[1] - 1)
+            width_add = 0 if self.GLOBAL_INDEX_IMAGE[0] == 0 else (self.GLOBAL_INDEX_IMAGE[0] - 1)
+            rgb_add = self.GLOBAL_INDEX_RGB + 1
+            
+            bits_used = (((heigth_index * self.WIDTH) + width_add) * 3) + rgb_add
+            bits_total = self.HEIGHT * self.WIDTH * coef
+            ppercent_used = round((bits_used / bits_total) * 100, 2)
+            self.GUI.add_line(f"Image encodée avec succès! {ppercent_used}% de l'image a été utilisé pour encoder le texte", "green")
+            self.GUI.add_line("Utiliser le bouton 'enregistrer' sur la droite pour sauvegarder l'image encodée.", "green")
+            self.GUI.add_line("")
+            return 0
+        except IndexError as e:
+            ppercent_encoded = round((self.ENCODED_CHARACTERS_COUNTER / len(text)) * 100, 2)
+            self.GUI.add_line(f"Erreur lors de l'encodage: l'image selectionné ne peut pas contenir les données à encoder.", 'red')
+            self.GUI.add_line(f"{self.ENCODED_CHARACTERS_COUNTER}/{len(text)} ({ppercent_encoded}%) du texte a été encodé et a saturé l'image.", 'red')
+            self.GUI.add_line("")
+            self.ENCODED_CHARACTERS_COUNTER = 0
+        return 1
     
     def is_encoding_valid(self):
         watermark = self.read_bits(24)
-        print('watermark: ', watermark)
-        if watermark == self.WATERMARK_KEY_DEFAULT:
+        if watermark == self.WATERMARK_KEY:
             return True
         else:
             return False
