@@ -9,7 +9,3 @@ CitrusCrypt est une application permettant de cacher des messages dans des image
 python gui.py
 ```
 
-## Auteurs
-- **Elías** : Développement de l’interface et optimisation des algorithmes.
-- **Gabriel** : Cryptographie et implementation rsa.
-- **Constantin** : Optimisation, generation d'images et développement de l’interface .
