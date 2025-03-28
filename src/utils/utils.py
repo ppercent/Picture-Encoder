@@ -1,7 +1,6 @@
 from PIL import Image
 import math
-import sys
-import os
+
 from crypto.rsa import decrypt, decode_text
 
         
@@ -14,18 +13,6 @@ class ImageManager:
         self.GLOBAL_INDEX_RGB = 0
         self.MAX_RGB_INDEX = 2
         self.ENCODED_CHARACTERS_COUNTER = 0
-        # self.print_image_loaded()
-
-    def print_image_loaded(self):
-        # change this to GUI.debug later
-        print('[+] ... (todo later) image.png loaded!!')
-        print('   ➤  image size: ', self.WIDTH, 'x', self.HEIGHT)
-        print('   ➤  pixel count: ', self.PIXEL_COUNT)
-        print('   ➤  writable size: ', (self.PIXEL_COUNT * 3) / 8 / 1000, 'kb of text.')
-
-    def get_max_character_count_estimation(self):
-        bits_count = self.PIXEL_COUNT * 3 - 48
-        return math.ceil((bits_count - ((bits_count / 8) * 2)) / 8)
 
     def get_ppercent_used(self):
         return round(((self.GLOBAL_INDEX_IMAGE[1] - 1) / self.HEIGHT) + (self.GLOBAL_INDEX_IMAGE[0] / (self.PIXEL_COUNT)), 2)
@@ -102,7 +89,7 @@ class ImageManager:
         else:
             return self.read_bits(bit_count - 1, bits + '1')
 
-    def set_image(self, image_path, type):
+    def set_image(self, image_path):
         self.image = Image.open(image_path)
         self.image = self.image.convert('RGBA')
         self.WIDTH = self.image.size[0]
@@ -162,14 +149,14 @@ class ImageManager:
             bits_used = (((heigth_index * self.WIDTH) + width_add) * 3) + rgb_add
             bits_total = self.HEIGHT * self.WIDTH * coef
             ppercent_used = round((bits_used / bits_total) * 100, 2)
-            self.GUI.add_line(f"Image encodée avec succès! {ppercent_used}% de l'image a été utilisé pour encoder le texte", "green")
-            self.GUI.add_line("Utiliser le bouton 'enregistrer' sur la droite pour sauvegarder l'image encodée.", "green")
+            self.GUI.add_line(f"Image encodée avec succès! ~{ppercent_used}% de l'image a été utilisé pour encoder le texte", "green")
+            self.GUI.add_line("Utiliser le bouton 'enregistrer' sur la droite pour sauvegarder l'image encodée.", "green")  
             self.GUI.add_line("")
             return 0
         except IndexError as e:
             ppercent_encoded = round((self.ENCODED_CHARACTERS_COUNTER / len(text)) * 100, 2)
-            self.GUI.add_line(f"Erreur lors de l'encodage: l'image selectionné ne peut pas contenir les données à encoder.", 'red')
-            self.GUI.add_line(f"{self.ENCODED_CHARACTERS_COUNTER}/{len(text)} ({ppercent_encoded}%) du texte a été encodé et a saturé l'image.", 'red')
+            self.GUI.add_line(f"Erreur lors de l'encodage: l'image selectionnée ne peut pas contenir les données à encoder.", 'red')
+            self.GUI.add_line(f"{self.ENCODED_CHARACTERS_COUNTER}/{len(text)} (~{ppercent_encoded}%) du texte a été encodé et a saturé l'image.", 'red')
             self.GUI.add_line("")
             self.ENCODED_CHARACTERS_COUNTER = 0
         return 1
@@ -250,18 +237,14 @@ class ImageManager:
         self.GUI.decode_output_textbox.configure(state='disabled')
         self.GUI.add_line('Decodage terminé :3','green')
 
+# for scientific research purposes only
 if __name__ == '__main__':
     IM = ImageManager(0)
-    IM.set_image(r'output.png')
-    # text = 'please work ? like actually bro'
-    # IM.encode_image(text, 'DEFAULT', False, True)
-    # IM.image.save('alphas.png', format='PNG')
+    IM.set_image(r'input.png')
+
+    text = r'''some very very secret text'''
+    IM.encode_image(text, False, True)
+    IM.image.save('alphas.png', format='PNG')
     
-    IM.decode_image()
+    # IM.decode_image()
     # print(IM.get_ppercent_used(), r'% of the image used.')
-    # print(IM.GLOBAL_INDEX_IMAGE)
-    # print('width: ', IM.WIDTH)
-    # print('heigth: ', IM.HEIGHT)
-    # print('count: ', IM.PIXEL_COUNT)
-    
-    # SAVE BEFORE I TRY TO FIX THE ONE IMAGE ACROSS TWO MODS BUG
