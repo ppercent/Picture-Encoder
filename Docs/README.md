@@ -6,10 +6,6 @@ CitrusCrypt est une application permettant de cacher des messages dans des image
 ## Installation
 ### Prérequis
 - **Version de Python** : 3.9 ou supérieur
-- **Dépendances** :
-  ```sh
-  pip install -r requirements.txt
-  ```
 
 ### Exécution
 ```sh
