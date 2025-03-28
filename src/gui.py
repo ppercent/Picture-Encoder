@@ -52,7 +52,7 @@ class GUI(tk.Tk):
         icon = Image.open(base_dir + "\\assets\\icon.png")
         icon = ImageTk.PhotoImage(icon)
         self.wm_iconphoto(True, icon)
-        self.image_mainframe_bg = tk.PhotoImage(file=base_dir + '\\assets\\Frame 1\\background.png')
+        self.image_mainframe_bg = tk.PhotoImage(file=base_dir + '\\assets\\background.png')
         self.image_placeholder = tk.PhotoImage(file=base_dir + '\\assets\\image_placeholder.png')
         self.save_image = tk.PhotoImage(file=base_dir + '\\assets\\save.png')
         self.copy_image = tk.PhotoImage(file=base_dir + '\\assets\\copy.png')
