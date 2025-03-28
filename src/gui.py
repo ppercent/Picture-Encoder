@@ -74,7 +74,7 @@ class GUI(tk.Tk):
         
         # globals
         self.current_mode = 'encode'
-        self.formats = ('png','jpg','jpeg', 'bmp', 'tiff', 'tif', 'webp', 'tga')
+        self.formats = ('png', 'bmp', 'tiff', 'tga')
         self.rsa_sizes = ('128', '256', '512', '1024')
         self.has_generated_keys = False
         self.encoded_image_generated = False
