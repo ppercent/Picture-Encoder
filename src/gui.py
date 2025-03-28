@@ -182,11 +182,11 @@ class GUI(tk.Tk):
         # fetching data
         text_to_encode = self.encode_input_textbox.get("0.0", "end-1c")
         if not text_to_encode:
-            self.add_line("Entrer du texte", 'red')
+            self.add_line("Entrer du texte et une image pour commencer l'encodage", 'red')
             return
         
         if not self.image_to_encode_path:
-            self.add_line("Entrer une image (image gen flashbacks)", 'red')
+            self.add_line("Entrer du texte et une image pour commencer l'encodage", 'red')
             return
             
         uses_rsa = False
@@ -202,7 +202,7 @@ class GUI(tk.Tk):
                     text_to_encode = encrypt(text_to_encode, decode_text(self.encode_options_rsa_public_key_field.get()))
                 except Exception:
                     self.add_line("[-] Erreur lors de l'encryptage RSA, veuillez vérifier votre clé ou générer une nouvelle paire de clés", 'red')
-                    self.add_line("Tout les formats standards de clés ne sont pas supportés.", 'orange')
+                    self.add_line("[*] Tout les formats standards de clés ne sont pas supportés.", 'orange')
                     return
             else:
                 self.add_line("[-] Erreur lors de l'encryptage RSA: veuillez entrer une clé.", 'red')
@@ -537,7 +537,7 @@ class GUI(tk.Tk):
                             self.add_line(f"[-] Erreur lors de l'enregistrement de ‟{img_name}”: veuillez donner un nom valide à l'image de sortie", 'red')
                             return
                         self.ImageManager.image.save(f"{image_path}/{img_name}", format=extension.upper())
-                        self.add_line(f"Image enregistrée avec succès! Chemin d'accès: {image_path}/{img_name}", 'green')
+                        self.add_line(f"[+] Image enregistrée avec succès! Chemin d'accès: {image_path}/{img_name}", 'green')
                     except Exception as e:
                         self.add_line(f"[-] Erreur lors de l'enregistrement de ‟{img_name}”: {e}", 'red')
         else:
