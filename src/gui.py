@@ -9,6 +9,7 @@ import queue
 from time import sleep
 import tkinter as tk
 import os
+import re
 from crypto.rsa import generate_keys, encrypt, decrypt, encode_base_64, decode_text
 from utils.utils import ImageManager
 
@@ -193,26 +194,32 @@ class GUI(tk.Tk):
         
         if self.use_rsa_var.get() == 'on':
             if self.encode_options_rsa_public_key_field.get():
-                uses_rsa = True
-                print('encoded public key: ', self.encode_options_rsa_public_key_field.get())
-                print('text: ', text_to_encode)
-                print('decoded public key: ', decode_text(self.encode_options_rsa_public_key_field.get()))
-                text_to_encode = encrypt(text_to_encode, decode_text(self.encode_options_rsa_public_key_field.get()))
+                try:
+                    uses_rsa = True
+                    print('encoded public key: ', self.encode_options_rsa_public_key_field.get())
+                    print('text: ', text_to_encode)
+                    print('decoded public key: ', decode_text(self.encode_options_rsa_public_key_field.get()))
+                    text_to_encode = encrypt(text_to_encode, decode_text(self.encode_options_rsa_public_key_field.get()))
+                except Exception:
+                    self.add_line("[-] Erreur lors de l'encryptage RSA, veuillez vérifier votre clé ou générer une nouvelle paire de clés", 'red')
+                    self.add_line("Tout les formats standards de clés ne sont pas supportés.", 'orange')
+                    return
             else:
-                print('nonono')
+                self.add_line("[-] Erreur lors de l'encryptage RSA: veuillez entrer une clé.", 'red')
+                return
                 
         # encode the image
-        self.ImageManager.encode_image(text_to_encode, 'DEFAULT', uses_rsa, uses_alpha)
+        error_code = self.ImageManager.encode_image(text_to_encode, uses_rsa, uses_alpha)
         
         # update image preview
-        self.encoded_image_generated = True
-        encoded_image_tk = ImageTk.PhotoImage(self.resize(self.ImageManager.image, (400,270)))
-        self.encoded_image_preview_label.config(image=encoded_image_tk)
-        self.encoded_image_preview_label.image = encoded_image_tk
-        self.encoded_image_preview_label.pack(expand=True)
-        self.encode_image_placeholder.place_forget()
-        self.encode_image_placeholder_label.place_forget()
-        self.add_line('Encodage terminé!','green')
+        if error_code == 0:
+            self.encoded_image_generated = True
+            encoded_image_tk = ImageTk.PhotoImage(self.resize(self.ImageManager.image, (400,270)))
+            self.encoded_image_preview_label.config(image=encoded_image_tk)
+            self.encoded_image_preview_label.image = encoded_image_tk
+            self.encoded_image_preview_label.pack(expand=True)
+            self.encode_image_placeholder.place_forget()
+            self.encode_image_placeholder_label.place_forget()
         
         # options=[
         # self.rsa_size_var.get(), 
@@ -225,6 +232,30 @@ class GUI(tk.Tk):
         # self.rsa_sizes.get(),
         # ]
         # print(options)
+        
+    def format_bytes(self, bytes_amount):
+        # lets code a little bit with chatgpt cuz why not (its 3:14 am)
+        # Define scaling thresholds and units
+        units = [
+            (1_024 ** 3, 'gb'),
+            (1_024 ** 2, 'mb'),
+            (1_024, 'kb')
+        ]
+        
+        # Handle zero or negative input
+        if bytes_amount <= 0:
+            return '0 bytes'
+        
+        # Find appropriate scaling
+        for threshold, unit in units:
+            if bytes_amount >= threshold:
+                # Round to two decimal places
+                scaled_value = round(bytes_amount / threshold, 2)
+                return f'{scaled_value}{unit}'
+        
+        # If less than 1 kb, return in bytes
+        return f'{bytes_amount} bytes'
+        
     def load_input_image(self, frame, widgets, type):
         types = [("Images", "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tiff;*.tif;*.webp;*tga")]
         file_path = filedialog.askopenfilename(filetypes=types) 
@@ -252,7 +283,15 @@ class GUI(tk.Tk):
                 
         try:
             loaded_image = Image.open(file_path)
-            self.add_line(f"Image chargée avec succès! ({loaded_image.size[0]}x{loaded_image.size[1]}) {file_path}")
+            bit_size = 4 if self.use_alpha_var.get() == 'on' else 3
+            bytes_encodable = round(((loaded_image.size[0] * loaded_image.size[1] * bit_size) - 50) // 10)
+            self.add_line(f'[+] {os.path.basename(file_path)} chargée avec succès!')
+            self.add_line(f'      ➤  dimensions: {loaded_image.size[0]}x{loaded_image.size[1]}')
+            self.add_line(f'      ➤  taille encodable: ~{self.format_bytes(bytes_encodable)} de texte')
+            if type == 'decode_input':
+                self.add_line(f'      ➤  nombre de caractères encodés: {self.char_count}')
+            self.add_line('')
+            # self.add_line(f"Image chargée avec succès: {os.path.basename(file_path)} ({loaded_image.size[0]}x{loaded_image.size[1]})")
             loaded_image = self.resize(loaded_image, (frame.cget('width'),frame.cget('height')))
             loaded_image_tk = ImageTk.PhotoImage(loaded_image)
             image_label.config(image=loaded_image_tk)
@@ -276,8 +315,8 @@ class GUI(tk.Tk):
             
             if self.image_to_encode_path and self.ImageManager.image:
                 bit_size = 4 if self.use_alpha_var.get() == 'on' else 3
-                bits_available = ((self.ImageManager.WIDTH * self.ImageManager.HEIGHT * bit_size) - 50)         # because the whole watermark is 50 bits
-                bytes_available = bits_available // 10                                                          # assuming all utf 8 can be considered as 8 bits subdivisions
+                bits_available = ((self.ImageManager.WIDTH * self.ImageManager.HEIGHT * bit_size) - 50)         # -50 because the whole watermark is 50 bits
+                bytes_available = bits_available // 10                                                          # all utf 8 can be considered as 8 bits subdivisions + 2 indication bits
                 if self.use_alpha_var.get() == 'on':
                     bytes_available -= 1
                 if current_byte_count > bytes_available:
@@ -287,6 +326,15 @@ class GUI(tk.Tk):
                 self.character_indicator_label.configure(text=f'Caractères: {current_byte_count} / {bytes_available}')
             else:
                 self.character_indicator_label.configure(text=f'Caractères: {current_byte_count}')
+
+    def image_frame_widget_on_enter(self, encode_input_image_label, encode_input_image_frame):
+        encode_input_image_label.configure(fg='#4a4d50')
+        encode_input_image_frame.configure(border_width=1)
+        encode_input_image_frame.configure(border_color='#b1b1b1')
+    
+    def image_frame_widget_on_leave(self, encode_input_image_label, encode_input_image_frame):
+        encode_input_image_label.configure(fg='#000000')
+        encode_input_image_frame.configure(border_width=0)
 
     def init_encode_frames(self):
         '''This method is called to initialize the layout of the encode UI'''
@@ -335,8 +383,8 @@ class GUI(tk.Tk):
         
         for input_image_frame_widget in [encode_input_image_frame,encode_input_image_placeholder,encode_input_image_label]:
             input_image_frame_widget.bind('<Button-1>', lambda e: self.load_input_image(encode_input_image_frame,[encode_input_image_placeholder,encode_input_image_label],'encode_input'))
-            input_image_frame_widget.bind("<Enter>", lambda e: encode_input_image_label.config(fg='#4a4d50'))
-            input_image_frame_widget.bind("<Leave>", lambda e: encode_input_image_label.config(fg='#000000'))
+            input_image_frame_widget.bind("<Enter>", lambda e: self.image_frame_widget_on_enter(encode_input_image_label, encode_input_image_frame))
+            input_image_frame_widget.bind("<Leave>", lambda e: self.image_frame_widget_on_leave(encode_input_image_label, encode_input_image_frame))
         
         # TODO make encode_input_image_label text change color when you hover the frame/label, so the user knows you can click it (and it would open file explorer) AND implement image paste from clipboard
         
@@ -469,6 +517,10 @@ class GUI(tk.Tk):
         encode_image_preview_button.pack(side='top', pady=3)
         encode_image_save_button.pack(side='bottom', pady=3)
     
+    def is_valid_filename(self, file_name):
+        invalid_chars = r'[<>:"/\\|?*]'
+        return len(re.findall(invalid_chars, file_name)) == 0
+    
     def image_preview_button_callback(self, button_type):
         if self.encoded_image_generated == True:
             if button_type == 'show':
@@ -481,12 +533,16 @@ class GUI(tk.Tk):
                     try:
                         extension = self.output_format_var.get()
                         img_name = f'{self.output_name_var.get()}.{extension}'
-                        self.ImageManager.image.save(f"{image_path}//{img_name}", format=extension.upper())
-                        self.add_line(f"Image enregistrée avec succès! Chemin d'accès: {image_path}//{img_name}", 'green')
+                        if not self.is_valid_filename(self.output_name_var.get()):
+                            self.add_line(f"[-] Erreur lors de l'enregistrement de ‟{img_name}”: veuillez donner un nom valide à l'image de sortie", 'red')
+                            return
+                        self.ImageManager.image.save(f"{image_path}/{img_name}", format=extension.upper())
+                        self.add_line(f"Image enregistrée avec succès! Chemin d'accès: {image_path}/{img_name}", 'green')
                     except Exception as e:
-                        self.add_line(f"[-] Erreur lors de l'enregistrement de {img_name}: {e}", 'red')
+                        self.add_line(f"[-] Erreur lors de l'enregistrement de ‟{img_name}”: {e}", 'red')
         else:
-            print("The encoded image hasn't been generated yet")
+            self.add_line(f"[*] Avertissement: l'image encodée n'a pas encore été générée...", 'orange')
+            
     def draw_encode_frames(self):
         self.encode_input_mainframe.place(x=20, y=125)
         self.encode_options_mainframe.place(x=560, y=125)
@@ -509,7 +565,8 @@ class GUI(tk.Tk):
     
     def debug_draw_key_generated(self, public_key, private_key, error=''):
         if not error:
-            self.add_line('\n-----DEBUT CLÉ PUBLIQUE-----', 'red')
+            self.add_line('\n', 'red')
+            self.add_line('-----DEBUT CLÉ PUBLIQUE-----', 'red')
             self.add_line(public_key)
             self.add_line('-----FIN CLÉ PUBLIQUE-----', 'red')
             self.add_line('\n-----DEBUT CLÉ PRIVÉE-----', 'red')
