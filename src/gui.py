@@ -49,9 +49,9 @@ class GUI(tk.Tk):
 
         # load all assets
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        # icon = Image.open(base_dir + "\\assets\\icon.png")
-        # icon = ImageTk.PhotoImage(icon)
-        # self.wm_iconphoto(True, icon)
+        icon = Image.open(base_dir + "\\assets\\icon.png")
+        icon = ImageTk.PhotoImage(icon)
+        self.wm_iconphoto(True, icon)
         self.image_mainframe_bg = tk.PhotoImage(file=base_dir + '\\assets\\Frame 1\\background.png')
         self.image_placeholder = tk.PhotoImage(file=base_dir + '\\assets\\image_placeholder.png')
         self.save_image = tk.PhotoImage(file=base_dir + '\\assets\\save.png')
