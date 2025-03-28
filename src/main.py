@@ -6,4 +6,5 @@ def start_app():
     App.mainloop()
 
 if __name__ == '__main__':
+    # program entry point
     start_app()
