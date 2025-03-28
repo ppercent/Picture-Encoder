@@ -102,7 +102,7 @@ class ImageManager:
         else:
             return self.read_bits(bit_count - 1, bits + '1')
 
-    def set_image(self, image_path):
+    def set_image(self, image_path, type):
         self.image = Image.open(image_path)
         self.image = self.image.convert('RGBA')
         self.WIDTH = self.image.size[0]
@@ -263,3 +263,5 @@ if __name__ == '__main__':
     # print('width: ', IM.WIDTH)
     # print('heigth: ', IM.HEIGHT)
     # print('count: ', IM.PIXEL_COUNT)
+    
+    # SAVE BEFORE I TRY TO FIX THE ONE IMAGE ACROSS TWO MODS BUG
